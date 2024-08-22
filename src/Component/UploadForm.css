@@ -1,0 +1,49 @@
+.upload-form-container {
+    border: 1px solid #ced4da;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 400px;
+    margin: 20px auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .form-group input[type="file"] {
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .generate-btn {
+    text-align: right;
+  }
+  
+  .generate-btn button {
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .generate-btn button:disabled {
+    background-color: #c3e6cb;
+    cursor: not-allowed;
+  }
+  
+  .note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #6c757d;
+  }
+  
