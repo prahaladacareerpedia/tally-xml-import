@@ -41,30 +41,34 @@ function UploadForm() {
 
     data.forEach((row) => {
       const formattedDate = formatDate(row['DATE']);
+      
       xml += `\t\t\t\t<TALLYMESSAGE xmlns:UDF="TallyUDF">\n`;
       xml += `\t\t\t\t\t<VOUCHER VCHTYPE="${row['VOUCHER TYPE']}" ACTION="Create">\n`;
-      xml += `\t\t\t\t\t\t<DATE>${formattedDate}</DATE>\n`;
-      xml += `\t\t\t\t\t\t<NARRATION>${row['STANDARD NARRATION']}</NARRATION>\n`;
-      if (row['VOUCHER NUMBER']) {
-        xml += `\t\t\t\t\t\t<VOUCHERNUMBER>${row['VOUCHER NUMBER']}</VOUCHERNUMBER>\n`;
-      }
-      if (row['REFERENCE NUMBER']) {
-        xml += `\t\t\t\t\t\t<REFERENCE>${row['REFERENCE NUMBER']}</REFERENCE>\n`;
-      }
+      
+      xml += `\t\t\t\t\t\t<VOUCHERTYPENAME>${row['VOUCHER TYPE']}</VOUCHERTYPENAME>\n`;
+      xml += formattedDate ? `\t\t\t\t\t\t<DATE>${formattedDate}</DATE>\n` : `\t\t\t\t\t\t<DATE></DATE>\n`;
+      xml += `\t\t\t\t\t\t<EFFECTIVEDATE>${formattedDate}</EFFECTIVEDATE>\n`;
+      
+      xml += `\t\t\t\t\t\t<PARTYLEDGERNAME>${row['PARTY NAME'] || ''}</PARTYLEDGERNAME>\n`;
+      xml += `\t\t\t\t\t\t<NARRATION>${row['STANDARD NARRATION'] || ''}</NARRATION>\n`;
+      xml += `\t\t\t\t\t\t<VOUCHERNUMBER>${row['VOUCHER NUMBER'] || ''}</VOUCHERNUMBER>\n`;
+      xml += `\t\t\t\t\t\t<REFERENCE>${row['REFERENCE NUMBER'] || ''}</REFERENCE>\n`;
 
-      // First Ledger Entry
-      xml += `\t\t\t\t\t\t<ALLLEDGERENTRIES.LIST>\n`;
-      xml += `\t\t\t\t\t\t\t<LEDGERNAME>${row['LEDGER NAME DR/CR 1']}</LEDGERNAME>\n`;
-      xml += `\t\t\t\t\t\t\t<ISDEEMEDPOSITIVE>${row['EFFECT 1'] === 'Debit' ? 'Yes' : 'No'}</ISDEEMEDPOSITIVE>\n`;
-      xml += `\t\t\t\t\t\t\t<AMOUNT>${row['EFFECT 1'] === 'Debit' ? '-' : ''}${row['AMOUNT 1']}</AMOUNT>\n`;
-      xml += `\t\t\t\t\t\t</ALLLEDGERENTRIES.LIST>\n`;
+      // Dynamically add ledger entries
+      Object.keys(row).forEach((key) => {
+        if (key.startsWith('LEDGER NAME DR/CR') && row[key]) {
+          const ledgerIndex = key.match(/\d+/)[0];
+          const ledgerName = row[key];
+          const effect = row[`EFFECT ${ledgerIndex}`];
+          const amount = row[`AMOUNT ${ledgerIndex}`];
 
-      // Second Ledger Entry
-      xml += `\t\t\t\t\t\t<ALLLEDGERENTRIES.LIST>\n`;
-      xml += `\t\t\t\t\t\t\t<LEDGERNAME>${row['LEDGER NAME DR/CR 2']}</LEDGERNAME>\n`;
-      xml += `\t\t\t\t\t\t\t<ISDEEMEDPOSITIVE>${row['EFFECT 2'] === 'Debit' ? 'Yes' : 'No'}</ISDEEMEDPOSITIVE>\n`;
-      xml += `\t\t\t\t\t\t\t<AMOUNT>${row['EFFECT 2'] === 'Debit' ? '-' : ''}${row['AMOUNT 2']}</AMOUNT>\n`;
-      xml += `\t\t\t\t\t\t</ALLLEDGERENTRIES.LIST>\n`;
+          xml += `\t\t\t\t\t\t<ALLLEDGERENTRIES.LIST>\n`;
+          xml += `\t\t\t\t\t\t\t<LEDGERNAME>${ledgerName}</LEDGERNAME>\n`;
+          xml += `\t\t\t\t\t\t\t<ISDEEMEDPOSITIVE>${effect === 'Debit' ? 'Yes' : 'No'}</ISDEEMEDPOSITIVE>\n`;
+          xml += `\t\t\t\t\t\t\t<AMOUNT>${effect === 'Debit' ? '-' : ''}${amount}</AMOUNT>\n`;
+          xml += `\t\t\t\t\t\t</ALLLEDGERENTRIES.LIST>\n`;
+        }
+      });
 
       xml += `\t\t\t\t\t</VOUCHER>\n`;
       xml += `\t\t\t\t</TALLYMESSAGE>\n`;
@@ -75,9 +79,15 @@ function UploadForm() {
   };
 
   const formatDate = (excelDate) => {
-    if (!excelDate) return '';  // Handle empty or undefined date
-    const date = new Date(Math.round((excelDate - 25569) * 86400 * 1000)); // Convert Excel date to JS date
-    return date.toISOString().split('T')[0].replace(/-/g, '');
+    if (typeof excelDate === 'number') {
+      const date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
+      return date.toISOString().split('T')[0].replace(/-/g, '');
+    } else if (typeof excelDate === 'string') {
+      const date = new Date(excelDate);
+      return date.toISOString().split('T')[0].replace(/-/g, '');
+    } else {
+      return '';
+    }
   };
 
   return (
